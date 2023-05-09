@@ -2,18 +2,32 @@
 <html lang="en">
 
 <head>
+    <title>Final Project For Group 6</title>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three js earth</title>
-  
+
+    <style>
+        body {
+            font-family: Monospace;
+            background-color: #000;
+            color: #fff;
+            margin: 0px;
+            overflow: hidden;
+        }
+    </style>
 </head>
 
 <body>
-   
-    <canvas class="webgl"></canvas>
-
-    <script type="module" src="./index.js"></script>
+    <script src="../../libs/three.min.js"></script>
+    <script src="../../libs/Detector.js"></script>
+    <script src="../../libs/stats.min.js"></script>
+    <script src="../../libs/cannon.min.js"></script>
+    <script src="../../libs/OrbitControls.js"></script>
+    
+    <script  src="game1.js" ></script>
+    <script>
+        const game = new Game();
+    </script>
+ <!-- <script type="module" src="./index.js"></script> -->
     
 </body>
 
