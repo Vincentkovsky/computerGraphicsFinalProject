@@ -10,7 +10,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xa0a0a0 );
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 10 ,10);
-camera.lookAt(0, 1, 0);
+
 
 
 // 创建渲染器
@@ -115,9 +115,7 @@ scene.add( threePlaneMesh );
 
 
 const MeshBodyToUpdate = [];
-MeshBodyToUpdate.push({mesh:threePlaneMesh,body:cannonPlanBody});
 
-// 创建球体cannon
 
 let cannonSphereShape = new CANNON.Sphere(1);
 let cannonSphereMaterial = new CANNON.Material();
@@ -148,11 +146,11 @@ const loaderFBX = new THREE.FBXLoader();
 loaderFBX.load('../assets/car.fbx', function (fbx) {
 
   
-  const material = new THREE.MeshPhongMaterial({ color: 0x999999 });
-  const mesh = new THREE.Mesh(fbx.children[0].geometry, material);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
+  const materialCar = new THREE.MeshPhongMaterial({ color: 0x999999 });
+  const meshCar = new THREE.Mesh(fbx.children[0].geometry, materialCar);
+  meshCar.castShadow = true;
+  meshCar.receiveShadow = true;
+  scene.add(meshCar);
 
   const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
   const body = new CANNON.Body({ 
@@ -161,22 +159,23 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
   body.addShape(shape);
   body.position.set(0, 1, 1);
   world.addBody(body);
-  MeshBodyToUpdate.push({mesh:mesh,body:body});
+  MeshBodyToUpdate.push({mesh:meshCar,body:body});
+ 
   document.addEventListener("keydown", onDocumentKeyDown, false);
   function onDocumentKeyDown(event) {
     var keyCode = event.which;
     if (keyCode == 87) {
-		body.position.z += zSpeed;
-		
+		 body.position.z += zSpeed;
+    //  print("w")
     } else if (keyCode == 83) {
       body.position.z -= zSpeed;
-		
+		// print("s")
     } else if (keyCode == 65) {
       body.position.x -= xSpeed;
-		
+		// print("a")
     } else if (keyCode == 68) {
       body.position.x += xSpeed;
-		
+		// print("d")
     } 
 };
 });
@@ -188,11 +187,18 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 function animate() {
   requestAnimationFrame( animate );
 	world.step(1/60);
+
+
 	for(const object of MeshBodyToUpdate){
 		object.mesh.position.copy(object.body.position);
 		object.mesh.quaternion.copy(object.body.quaternion);
-	
+     camera.position.copy(object.mesh.position);
+      camera.position.y += 10;
+      camera.position.z += 10;
+    camera.lookAt(object.mesh.position);
+
 	}
     renderer.render( scene, camera );
+    
 }
 animate();
