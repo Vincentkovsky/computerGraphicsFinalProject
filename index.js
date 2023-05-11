@@ -67,18 +67,83 @@ const cannonDefaultCantactMaterial = new CANNON.ContactMaterial(
   cannonDefaultMaterial,
   cannonDefaultMaterial,
   {
-    friction: 0.01, // 摩擦力
+    friction: 0.31, // 摩擦力
     restitution: 0.3, // 弹性系数
-    
+    contactEquationStiffness: 1000
   }
 );
 // 将两个默认材质添加到物理世界world中
 world.addContactMaterial(cannonDefaultCantactMaterial);
 
+// 创建zhon'dian
+// const threefinGeometry = new THREE.PlaneGeometry( 1, 1, 1 );
+// const threefinMaterial = new THREE.ShaderMaterial({
+//   vertexshader: 
+//   gl
+//   document.getElementById('vertexshader').textContent,
+
+var geom = new THREE.SphereGeometry(3, 5, 3);
+var mate = new THREE.ShaderMaterial({
+    vertexShader: `
+    varying vec3 vNormal;
+    void main() {
+                //将normal通过varying赋值
+        vNormal = normal;
+                //projectionMatrix是投影变换矩阵 
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position.x, position.y , position.z, 1.0 );
+    }
+    `,
+    fragmentShader: `
+    varying vec3 vNormal;
+    void main() {
+      float pr = (vNormal.x+1.7) / 2.0; //pr红色通道值范围为0~1
+      float pg = (vNormal.y + 1.7) / 2.0; //pg绿色通道值范围为0~1
+      float pb = (vNormal.z + 1.0) / 2.0; //pb蓝色通道值范围为0~1
+      gl_FragColor=vec4(pr, pg, pb, 1.0); //最后设置顶点颜色，点与点之间会自动插值
+    }
+    `
+})
+var meshfin = new THREE.Mesh(geom, mate);
+meshfin.position.set(0, 7, -30);
+scene.add(meshfin)
 
 
-// 创建地面cannon
+// const threefinMaterial = new THREE.
 
+
+
+
+
+
+
+// 创建地面loader
+var textureLoader = new THREE.TextureLoader();
+var glassTexture = textureLoader.load('../assets/images/glass.jpg');
+// 创建地面three
+var vertices = [];
+var faces = [];
+const threePlaneGeometry = new THREE.PlaneGeometry(1000,1000 ,100, 100);
+ for (var i = 0; i < threePlaneGeometry.vertices.length; i++) {
+  var vertex = threePlaneGeometry.vertices[i];
+  vertices.push(new CANNON.Vec3(vertex.x, vertex.y, vertex.z));
+  vertex.z = Math.random() * 2;
+}
+
+threePlaneGeometry.computeVertexNormals();
+const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x999999 });
+
+glassTexture.wrapS = THREE.RepeatWrapping;
+glassTexture.wrapT = THREE.RepeatWrapping;
+glassTexture.repeat.set(100, 100); 
+planeMaterial.map = glassTexture;
+ let threePlaneMesh = new THREE.Mesh( threePlaneGeometry,planeMaterial);
+ threePlaneMesh.rotation.x = -Math.PI/2;
+  threePlaneMesh.castShadow = true;
+ threePlaneMesh.receiveShadow = true;
+ threePlaneMesh.position.set(0,0,0);
+
+scene.add( threePlaneMesh );
+ //地面incannon
 let cannonPlanShape = new CANNON.Plane();
 let cannonPlanMaterial = new CANNON.Material();
 let cannonPlanMass = 0;
@@ -92,35 +157,13 @@ let cannonPlanBody = new CANNON.Body({
 cannonPlanBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
 world.addBody(cannonPlanBody);
 
-
-// 创建地面loader
-var textureLoader = new THREE.TextureLoader();
-var glassTexture = textureLoader.load('../assets/images/glass.jpg');
-// 创建地面three
-
- let threePlaneGeometry = new THREE.PlaneGeometry(10000,10000);
- const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x999999 });
-
-glassTexture.wrapS = THREE.RepeatWrapping;
-glassTexture.wrapT = THREE.RepeatWrapping;
-glassTexture.repeat.set(100, 100); 
-planeMaterial.map = glassTexture;
- let threePlaneMesh = new THREE.Mesh( threePlaneGeometry,planeMaterial);
- threePlaneMesh.rotation.x = -Math.PI/2;
- threePlaneMesh.receiveShadow = true;
- threePlaneMesh.position.set(0,0,0);
-
-scene.add( threePlaneMesh );
- 
-
-
 const MeshBodyToUpdate = [];
 
 
 let cannonSphereShape = new CANNON.Sphere(1);
 let cannonSphereMaterial = new CANNON.Material();
-let cannonSphereMass = 1;
-let cannonSpherePosition=new CANNON.Vec3(0,10,0);
+let cannonSphereMass = 3;
+let cannonSpherePosition=new CANNON.Vec3(2,0.5,0);
 let cannonSphereBody = new CANNON.Body({
     mass:cannonSphereMass,
     shape:cannonSphereShape,
@@ -138,23 +181,23 @@ MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
 
 
 // 创车cannon,three
-var xSpeed = 1;
-var zSpeed = 1;
 
 const loaderFBX = new THREE.FBXLoader();
 
 loaderFBX.load('../assets/car.fbx', function (fbx) {
 
-  
+var xSpeed = 1;
+var zSpeed = -1;
+
   const materialCar = new THREE.MeshPhongMaterial({ color: 0x999999 });
   const meshCar = new THREE.Mesh(fbx.children[0].geometry, materialCar);
   meshCar.castShadow = true;
   meshCar.receiveShadow = true;
   scene.add(meshCar);
 
-  const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+  const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 1));
   const body = new CANNON.Body({ 
-    mass: 1
+    mass: 5
    });
   body.addShape(shape);
   body.position.set(0, 1, 1);
@@ -173,12 +216,13 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
     } else if (keyCode == 65) {
       body.position.x -= xSpeed;
 		// print("a")
-    } else if (keyCode == 68) {
+    }   else if (keyCode == 68) {
       body.position.x += xSpeed;
 		// print("d")
     } 
 };
 });
+
 
 
 // animate
@@ -187,14 +231,14 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 function animate() {
   requestAnimationFrame( animate );
 	world.step(1/60);
-
+meshfin.rotation.y += 0.01;
 
 	for(const object of MeshBodyToUpdate){
 		object.mesh.position.copy(object.body.position);
 		object.mesh.quaternion.copy(object.body.quaternion);
      camera.position.copy(object.mesh.position);
       camera.position.y += 10;
-      camera.position.z += 10;
+      camera.position.z += 15;
     camera.lookAt(object.mesh.position);
 
 	}
