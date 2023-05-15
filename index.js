@@ -5,6 +5,27 @@ import { STLLoader } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/lo
 import { MTLLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/MTLLoader.js';
 import { OBJLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/OBJLoader.js';
 
+document.getElementById('play-button').addEventListener('click', function() {
+  document.getElementById('start-screen').style.display = 'none';
+  startGame();
+});
+
+document.getElementById('car-texture-select').addEventListener('change', function(e) {
+  const selectedTexture = e.target.value;
+  const carPreview = document.getElementById('car-preview');
+
+  // 根据选项设置不同的贴图路径
+  if (selectedTexture === '../../assets/tex/CarBody01.png') {
+    carPreview.src = '../../assets/tex/CarBody01p.png';
+  } else if (selectedTexture === '../../assets/tex/CarBody02.png') {
+    carPreview.src = '../../assets/tex/CarBody02p.png';
+  } else if (selectedTexture === '../../assets/tex/CarBody03.png') {
+    carPreview.src = '../../assets/tex/CarBody03p.png';
+  }
+});
+
+
+function startGame() {
 // 创建场景和相机
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xa0a0a0 );
@@ -137,18 +158,18 @@ scene.add(threeSphereMesh);
 MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
 
 
-
-
 // 创车cannon,three
 var xSpeed = 1;
 var zSpeed = 1;
+// 获取选中的贴图
+var selectedTexture = document.getElementById('car-texture-select').value;
 
 const loaderFBX = new THREE.FBXLoader();
 
 loaderFBX.load('../assets/car.fbx', function (fbx) {
 
   
-  const material = new THREE.MeshPhongMaterial({ color: 0x999999 });
+  const material = new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load(selectedTexture), });
   const mesh = new THREE.Mesh(fbx.children[0].geometry, material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -196,3 +217,4 @@ function animate() {
     renderer.render( scene, camera );
 }
 animate();
+}

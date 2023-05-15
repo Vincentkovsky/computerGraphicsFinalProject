@@ -21,6 +21,7 @@
 				overflow: hidden;
 			}
 			
+			
 			#reset-btn{
 				position: absolute;
 				left: 15px;
@@ -45,10 +46,54 @@
 			svg{
 				pointer-events: none;
 			}
+			#car-preview {
+               width: 50%;
+               height: 50%;
+            }
+
+		#start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #play-button {
+            background-color: #ff0000;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
+	<div id="start-screen">
+		<img id="car-preview" src="../../assets/tex/CarBody01p.png" />
+		<h1>Welcome to Our Game!</h1>
+		<select id="car-texture-select">
+			<option value="../../assets/tex/CarBody01.png">car 1</option>
+			<option value="../../assets/tex/CarBody02.png">car 2</option>
+			<option value="../../assets/tex/CarBody03.png">car 3</option>
+			<!-- 更多选项 -->
+		</select>
+		
+		<button id="play-button">PLAY</button>
+	</div>
+	
     <script src="../../libs/three.min.js"></script>
     <script src="../../libs/Detector.js"></script>
     <script src="../../libs/stats.min.js"></script>
