@@ -5,6 +5,29 @@ import { STLLoader } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/lo
 import { MTLLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/MTLLoader.js';
 import { OBJLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/OBJLoader.js';
 
+document.getElementById('play-button').addEventListener('click', function() {
+  document.getElementById('start-screen').style.display = 'none';
+  startGame();
+});
+
+document.getElementById('car-texture-select').addEventListener('change', function(e) {
+  const selectedTexture = e.target.value;
+  const carPreview = document.getElementById('car-preview');
+
+  // 根据选项设置不同的贴图路径
+  if (selectedTexture === '../../assets/tex/CarBody01.png') {
+    carPreview.src = '../../assets/tex/CarBody01p.png';
+  } else if (selectedTexture === '../../assets/tex/CarBody02.png') {
+    carPreview.src = '../../assets/tex/CarBody02p.png';
+  } else if (selectedTexture === '../../assets/tex/CarBody03.png') {
+    carPreview.src = '../../assets/tex/CarBody03p.png';
+  }
+});
+
+
+function startGame() {
+let body; // 在这里定义 body
+
 // 创建场景和相机
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xa0a0a0 );
@@ -181,47 +204,95 @@ MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
 
 
 // 创车cannon,three
+var xSpeed = 1;
+var zSpeed = 1;
+// 获取选中的贴图
+var selectedTexture = document.getElementById('car-texture-select').value;
 
 const loaderFBX = new THREE.FBXLoader();
+const wheelLoader = new THREE.FBXLoader();
+const wheelPositions = [
+  new THREE.Vector3(1, 0, 1),
+  new THREE.Vector3(-1, 0, 1),
+  new THREE.Vector3(1, 0, -1),
+  new THREE.Vector3(-1, 0, -1),
+];
+const wheels = [];
 
 loaderFBX.load('../assets/car.fbx', function (fbx) {
 
-var xSpeed = 1;
-var zSpeed = -1;
+  
+  const material = new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load(selectedTexture), });
+  const mesh = new THREE.Mesh(fbx.children[0].geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
 
-  const materialCar = new THREE.MeshPhongMaterial({ color: 0x999999 });
-  const meshCar = new THREE.Mesh(fbx.children[0].geometry, materialCar);
-  meshCar.castShadow = true;
-  meshCar.receiveShadow = true;
-  scene.add(meshCar);
-
-  const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 1));
-  const body = new CANNON.Body({ 
-    mass: 5
+  const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+  body = new CANNON.Body({ 
+    mass: 1
    });
   body.addShape(shape);
   body.position.set(0, 1, 1);
   world.addBody(body);
-  MeshBodyToUpdate.push({mesh:meshCar,body:body});
- 
+  MeshBodyToUpdate.push({mesh:mesh,body:body});
+  // 在车辆模型加载完成之后，再加载车轮模型
+  wheelLoader.load('../../assets/wheel.fbx', function (wheelModel) {
+    wheelPositions.forEach((position, index) => {
+      const wheelMesh = wheelModel.clone();
+    
+      // Load textures
+      const hubTexture = new THREE.TextureLoader().load('../../assets/tex/Wheel.png');
+      const tyreTexture = new THREE.TextureLoader().load('../../assets/tex/Tyre.png');
+    
+      // Create materials
+      const hubMaterial = new THREE.MeshPhongMaterial({ map: hubTexture });
+      const tyreMaterial = new THREE.MeshPhongMaterial({ map: tyreTexture });
+    
+      // Get the specific part by name
+      const hub = wheelMesh.getObjectByName('wheel');
+      const tyre = wheelMesh.getObjectByName('Wheel1:tyre');
+    
+      // Set materials
+      if (hub) {
+        hub.material = hubMaterial;
+      }
+      if (tyre) {
+        tyre.material = tyreMaterial;
+      }
+    
+      // Add the wheel to the car model
+      mesh.add(wheelMesh);
+    
+      // Store the wheel in the array for later rotation update
+      wheels.push(wheelMesh);
+    });
+    
+    // Update the position of the wheel
+    wheels[0].position.set(0.8, 0.2, 1.2); // Modify the position of the first wheel
+    wheels[1].position.set(-0.8, 0.2, 1.2); // Modify the position of the second wheel
+    wheels[2].position.set(0.8, 0.2, -1.1); // Modify the position of the third wheel
+    wheels[3].position.set(-0.8, 0.2, -1.1); // Modify the position of the fourth wheel    
+  });
   document.addEventListener("keydown", onDocumentKeyDown, false);
   function onDocumentKeyDown(event) {
     var keyCode = event.which;
     if (keyCode == 87) {
-		 body.position.z += zSpeed;
-    //  print("w")
+		body.position.z += zSpeed;
+		
     } else if (keyCode == 83) {
       body.position.z -= zSpeed;
-		// print("s")
+		
     } else if (keyCode == 65) {
       body.position.x -= xSpeed;
-		// print("a")
-    }   else if (keyCode == 68) {
+		
+    } else if (keyCode == 68) {
       body.position.x += xSpeed;
-		// print("d")
+		
     } 
 };
 });
+
 
 
 
@@ -242,7 +313,15 @@ meshfin.rotation.y += 0.01;
     camera.lookAt(object.mesh.position);
 
 	}
+  // 如果车辆正在移动，旋转车轮
+  if (body.velocity.length() > 0) {
+    // 旋转车轮，这里假设沿着x轴旋转，你可以根据需要修改
+    for (const wheel of wheels) {
+        wheel.rotation.x += 0.01;
+    }
+}
     renderer.render( scene, camera );
     
 }
 animate();
+}
