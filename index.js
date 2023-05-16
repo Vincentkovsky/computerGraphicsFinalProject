@@ -26,6 +26,7 @@ document.getElementById('car-texture-select').addEventListener('change', functio
 
 
 function startGame() {
+let body; // 在这里定义 body
 // 创建场景和相机
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xa0a0a0 );
@@ -165,6 +166,14 @@ var zSpeed = 1;
 var selectedTexture = document.getElementById('car-texture-select').value;
 
 const loaderFBX = new THREE.FBXLoader();
+const wheelLoader = new THREE.FBXLoader();
+const wheelPositions = [
+  new THREE.Vector3(1, 0, 1),
+  new THREE.Vector3(-1, 0, 1),
+  new THREE.Vector3(1, 0, -1),
+  new THREE.Vector3(-1, 0, -1),
+];
+const wheels = [];
 
 loaderFBX.load('../assets/car.fbx', function (fbx) {
 
@@ -176,13 +185,51 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
   scene.add(mesh);
 
   const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
-  const body = new CANNON.Body({ 
+  body = new CANNON.Body({ 
     mass: 1
    });
   body.addShape(shape);
   body.position.set(0, 1, 1);
   world.addBody(body);
   MeshBodyToUpdate.push({mesh:mesh,body:body});
+  // 在车辆模型加载完成之后，再加载车轮模型
+  wheelLoader.load('../../assets/wheel.fbx', function (wheelModel) {
+    wheelPositions.forEach((position, index) => {
+      const wheelMesh = wheelModel.clone();
+    
+      // Load textures
+      const hubTexture = new THREE.TextureLoader().load('../../assets/tex/Wheel.png');
+      const tyreTexture = new THREE.TextureLoader().load('../../assets/tex/Tyre.png');
+    
+      // Create materials
+      const hubMaterial = new THREE.MeshPhongMaterial({ map: hubTexture });
+      const tyreMaterial = new THREE.MeshPhongMaterial({ map: tyreTexture });
+    
+      // Get the specific part by name
+      const hub = wheelMesh.getObjectByName('wheel');
+      const tyre = wheelMesh.getObjectByName('Wheel1:tyre');
+    
+      // Set materials
+      if (hub) {
+        hub.material = hubMaterial;
+      }
+      if (tyre) {
+        tyre.material = tyreMaterial;
+      }
+    
+      // Add the wheel to the car model
+      mesh.add(wheelMesh);
+    
+      // Store the wheel in the array for later rotation update
+      wheels.push(wheelMesh);
+    });
+    
+    // Update the position of the wheel
+    wheels[0].position.set(0.8, 0.2, 1.2); // Modify the position of the first wheel
+    wheels[1].position.set(-0.8, 0.2, 1.2); // Modify the position of the second wheel
+    wheels[2].position.set(0.8, 0.2, -1.1); // Modify the position of the third wheel
+    wheels[3].position.set(-0.8, 0.2, -1.1); // Modify the position of the fourth wheel    
+  });
   document.addEventListener("keydown", onDocumentKeyDown, false);
   function onDocumentKeyDown(event) {
     var keyCode = event.which;
@@ -202,9 +249,7 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 };
 });
 
-
 // animate
-
 
 function animate() {
   requestAnimationFrame( animate );
@@ -214,6 +259,13 @@ function animate() {
 		object.mesh.quaternion.copy(object.body.quaternion);
 	
 	}
+  // 如果车辆正在移动，旋转车轮
+  if (body.velocity.length() > 0) {
+    // 旋转车轮，这里假设沿着x轴旋转，你可以根据需要修改
+    for (const wheel of wheels) {
+        wheel.rotation.x += 0.01;
+    }
+}
     renderer.render( scene, camera );
 }
 animate();
