@@ -1,8 +1,3 @@
-import dat from "https://unpkg.com/dat.gui@0.7.7/build/dat.gui.module.js"
-
-import { STLLoader } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/loaders/STLLoader.js";
-import { MTLLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/MTLLoader.js';
-import { OBJLoader } from 'https://cdn.skypack.dev/three@0.133.1/examples//jsm/loaders/OBJLoader.js';
 
 document.getElementById('play-button').addEventListener('click', function() {
   document.getElementById('start-screen').style.display = 'none';
@@ -49,6 +44,18 @@ function onWindowResize() {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
 
 }
+
+// 创建天空盒
+var path = "../../assets/images/";
+var format = '.png';
+var urls = [
+  path + 'px' + format, path + 'nx' + format,
+  path + 'py' + format, path + 'ny' + format,
+  path + 'nz' + format, path + 'pz' + format
+];
+var reflectionCube = new THREE.CubeTextureLoader().load( urls );
+scene.background = reflectionCube;
+
 //创建环境光
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
