@@ -186,7 +186,7 @@ const MeshBodyToUpdate = [];
 let cannonSphereShape = new CANNON.Sphere(1);
 let cannonSphereMaterial = new CANNON.Material();
 let cannonSphereMass = 3;
-let cannonSpherePosition=new CANNON.Vec3(2,0.5,0);
+let cannonSpherePosition=new CANNON.Vec3(5,1,5);
 let cannonSphereBody = new CANNON.Body({
     mass:cannonSphereMass,
     shape:cannonSphereShape,
@@ -200,29 +200,29 @@ threeSphereMesh.castShadow = true;
 scene.add(threeSphereMesh);
 MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
 
-let numWalls = 100; // 生成的墙的数量
-let wallWidth = 1, wallHeight = 3, wallDepth = 5; // 墙的尺寸
-let wallColor = 0x00ff00; // 墙的颜色
+let numWalls = 1000; // 生成的墙的数量
+let wallWidth = 1, wallHeight = 3, wallDepth = 10; // 墙的尺寸
 
 for (let i = 0; i < numWalls; i++) {
     // 随机生成墙的位置
-    let posX = Math.random() * 200 - 100; // 随机在-10到10之间生成x坐标
+    let posX = (Math.random() * 200 - 100)*5; // 随机在-10到10之间生成x坐标
     let posY = wallHeight / 2; //墙应该位于地面上，所以y坐标为墙高的一半
-    let posZ = Math.random() * 100 - 100; // 随机在-10到10之间生成z坐标
+    let posZ = (Math.random() * 200 - 100)*5; // 随机在-10到10之间生成z坐标
 
     let rotX = Math.random() * 0;
     let rotY = Math.random() * 200 - 100;
     let rotZ = Math.random() * 0;
     // 创建Three.js墙模型
-    let wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
-    let wallMaterial = new THREE.MeshLambertMaterial({ color: wallColor });
+    let wallGeometry = new THREE.BoxGeometry(wallWidth/2, wallHeight, wallDepth);
+    let wallTexture = textureLoader.load('../assets/images/imageswall.jpg');
+    let wallMaterial = new THREE.MeshBasicMaterial({map:wallTexture});
     let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
     wallMesh.position.set(posX, posY, posZ);
     wallMesh.rotation.set(rotX, rotY, rotZ);
     scene.add(wallMesh);
 
     // 创建Cannon.js墙物理模型
-    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth / 2, wallHeight / 2, wallDepth / 2));
+    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth*2 , wallHeight/2 , wallDepth*2 ));
     let wallBody = new CANNON.Body({ mass: 0 });
     wallBody.addShape(wallShape);
     wallBody.position.set(posX, posY, posZ);
@@ -237,7 +237,6 @@ for (let i = 0; i < numWalls; i++) {
 
 // 创车cannon,three
 var xSpeed = 1;
-var zSpeed = 1;
 // 获取选中的贴图
 var selectedTexture = document.getElementById('car-texture-select').value;
 
@@ -260,12 +259,12 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
   mesh.receiveShadow = true;
   scene.add(mesh);
 
-  const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+  const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 0.5));
   body = new CANNON.Body({ 
     mass: 1
    });
   body.addShape(shape);
-  body.position.set(0, 1, 1);
+  body.position.set(0, 0.5, 0);
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI); // 设置初始旋转角度为180度
   world.addBody(body);
   MeshBodyToUpdate.push({mesh:mesh,body:body});
