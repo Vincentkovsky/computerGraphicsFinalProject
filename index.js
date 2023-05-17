@@ -18,6 +18,15 @@ document.getElementById('car-texture-select').addEventListener('change', functio
   }
 });
 
+function getDistance(object1, object2) {
+  const dx = object1.position.x - object2.position.x;
+  const dy = object1.position.y - object2.position.y;
+  const dz = object1.position.z - object2.position.z;
+
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+const gameOverDistance = 15; // 设置距离，当进入这个距离内时，游戏结束
 
 function startGame() {
 let body; // 在这里定义 body
@@ -133,16 +142,11 @@ var mate = new THREE.ShaderMaterial({
     `
 })
 var meshfin = new THREE.Mesh(geom, mate);
-meshfin.position.set(0, 7, -30);
+meshfin.position.set(Math.random() * 100 - 50, 7, Math.random() * 0 - 50);
 scene.add(meshfin)
 
 
 // const threefinMaterial = new THREE.
-
-
-
-
-
 
 
 // 创建地面loader
@@ -195,6 +199,38 @@ let threeSphereMesh = new THREE.Mesh(threeSphereGeometry,threeSphereMaterial);
 threeSphereMesh.castShadow = true;
 scene.add(threeSphereMesh);
 MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
+
+let numWalls = 100; // 生成的墙的数量
+let wallWidth = 1, wallHeight = 3, wallDepth = 5; // 墙的尺寸
+let wallColor = 0x00ff00; // 墙的颜色
+
+for (let i = 0; i < numWalls; i++) {
+    // 随机生成墙的位置
+    let posX = Math.random() * 200 - 100; // 随机在-10到10之间生成x坐标
+    let posY = wallHeight / 2; //墙应该位于地面上，所以y坐标为墙高的一半
+    let posZ = Math.random() * 100 - 100; // 随机在-10到10之间生成z坐标
+
+    let rotX = Math.random() * 0;
+    let rotY = Math.random() * 200 - 100;
+    let rotZ = Math.random() * 0;
+    // 创建Three.js墙模型
+    let wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
+    let wallMaterial = new THREE.MeshLambertMaterial({ color: wallColor });
+    let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
+    wallMesh.position.set(posX, posY, posZ);
+    wallMesh.rotation.set(rotX, rotY, rotZ);
+    scene.add(wallMesh);
+
+    // 创建Cannon.js墙物理模型
+    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth / 2, wallHeight / 2, wallDepth / 2));
+    let wallBody = new CANNON.Body({ mass: 0 });
+    wallBody.addShape(wallShape);
+    wallBody.position.set(posX, posY, posZ);
+    world.addBody(wallBody);
+
+    // 如果需要更新墙的位置或者旋转（例如，如果墙不是静态的），将它添加到MeshBodyToUpdate数组中
+    // MeshBodyToUpdate.push({mesh: wallMesh, body: wallBody});
+}
 
 
 
@@ -343,49 +379,51 @@ document.addEventListener('keyup', (event) => {
 
 function animate() {
   requestAnimationFrame( animate );
-	world.step(1/60);
-meshfin.rotation.y += 0.01;
+  world.step(1/60);
+  meshfin.rotation.y += 0.01;
 
-	for(const object of MeshBodyToUpdate){
-		object.mesh.position.copy(object.body.position);
-		object.mesh.quaternion.copy(object.body.quaternion);
+  for(const object of MeshBodyToUpdate){
+    object.mesh.position.copy(object.body.position);
+    object.mesh.quaternion.copy(object.body.quaternion);
     camera.position.copy(object.mesh.position);
     camera.position.y += 10;
     camera.position.z += 15;
     camera.lookAt(object.mesh.position);
+  }
 
+  if (getDistance(threeSphereMesh, meshfin) < gameOverDistance) {
+    // 玩家进入了`meshfin`的周围，游戏结束
+    endGame();
+  }
 
-    // 在这里添加约束
-    //if (object.body === body) {
-    //  const worldUp = new CANNON.Vec3(0, 1, 0);
-    //  const bodyUp = new CANNON.Vec3();
-    //  object.body.quaternion.vmult(worldUp, bodyUp);
-    //  const quat = new CANNON.Quaternion();
-    //  quat.setFromVectors(bodyUp, worldUp);
-    //  object.body.quaternion.vmult(quat, object.body.quaternion);
-    //}
-	}
   // 如果车辆正在移动，旋转车轮
   if (body && body.velocity.length() > 0) {
     // 旋转车轮，这里假设沿着x轴旋转，你可以根据需要修改
     for (const wheel of wheels) {
-        wheel.rotation.x += 0.01;
+      wheel.rotation.x += 0.01;
     }
-}
-    renderer.render( scene, camera );
+  }
+  renderer.render( scene, camera );
 
-// 根据按键状态更新速度向量
-const forwardVector = new CANNON.Vec3(0, 0, -1); // 向前的向量
-const backwardVector = new CANNON.Vec3(0, 0, 1); // 向后的向量
-const force = new CANNON.Vec3();
+  // 根据按键状态更新速度向量
+  const forwardVector = new CANNON.Vec3(0, 0, -1); // 向前的向量
+  const backwardVector = new CANNON.Vec3(0, 0, 1); // 向后的向量
+  const force = new CANNON.Vec3();
 
-if (isMovingForward) { // 按下 "W" 键，向前移动
-  force.copy(body.quaternion.vmult(forwardVector).scale(xSpeed));
-  body.applyForce(force, body.position);
-} else if (isMovingBackward) { // 按下 "S" 键，向后移动
-  force.copy(body.quaternion.vmult(backwardVector).scale(xSpeed));
-  body.applyForce(force, body.position);
+  if (isMovingForward) { // 按下 "W" 键，向前移动
+    force.copy(body.quaternion.vmult(forwardVector).scale(xSpeed));
+    body.applyForce(force, body.position);
+  } else if (isMovingBackward) { // 按下 "S" 键，向后移动
+    force.copy(body.quaternion.vmult(backwardVector).scale(xSpeed));
+    body.applyForce(force, body.position);
+  }
 }
+
+function endGame() {
+  // 显示"GAME OVER"的消息
+  const gameOverScreen = document.getElementById('game-over-screen');
+  gameOverScreen.style.display = 'block';
 }
+
 animate();
 }
