@@ -261,7 +261,7 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 
   const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 0.5));
   body = new CANNON.Body({ 
-    mass: 1
+    mass: 10
    });
   body.addShape(shape);
   body.position.set(0, 0.5, 0);
