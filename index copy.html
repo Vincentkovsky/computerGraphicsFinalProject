@@ -12,14 +12,19 @@
             color: #fff;
             margin: 0px;
             overflow: hidden;
+        }.hidden-audio {
+            display: none;
         }
-        body {
+        /* body {
 				font-family: Monospace;
 				background-color: #000;
 				color: #fff;
 				margin: 0px;
 				overflow: hidden;
-			}
+            }.hidden-canvas {
+            display: none;
+        }
+			 */
 			
 			#reset-btn{
 				position: absolute;
@@ -107,7 +112,7 @@
 	<script src="../../libs/inflate.min.js"></script>
 	<script src="../../libs/FBXLoader.js"></script>
 	<script src="../../libs/CannonDebugRenderer.js"></script>
-    
+    <audio id="audioPlayer" class="hidden-audio" controls></audio>
     
  <script type="module" src="./index.js"></script>
     

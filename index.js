@@ -286,25 +286,33 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keydown', (event) => {
   const key = event.key;
   const force = new CANNON.Vec3();
-
+  var audioPLayer = document.getElementById('audioPlayer');
   if (key === 'w' || key === 'W') { // W 键
     const forwardVector = new CANNON.Vec3(0, 0, 0.3); // 定义一个向前的向量
     force.copy(body.quaternion.vmult(forwardVector)); // 将向前的向量根据车辆的朝向进行旋转
     force.scale(forceMultiplier, force); // 根据力的大小进行缩放
     body.velocity.copy(force); // 更新速度向量
+    // audioPlayer.src = '../../assets/sfx/engine.mp3';
+    // audioPlayer.play();
   } else if (key === 's' || key === 'S') { // S 键
     const backwardVector = new CANNON.Vec3(0, 0, -0.3); // 定义一个向后的向量
     force.copy(body.quaternion.vmult(backwardVector)); // 将向后的向量根据车辆的朝向进行旋转
     force.scale(forceMultiplier, force); // 根据力的大小进行缩放
     body.velocity.copy(force); // 更新速度向量
+    // audioPlayer.src = '../../assets/sfx/engine.mp3';
+    // audioPlayer.play();
   } 
   
   if (key === 'a' || key === 'A') { // A 键
     body.angularVelocity.set(0, 2, 0); // 设置角速度，使车辆向左旋转
     body.velocity.copy(body.quaternion.vmult(new CANNON.Vec3(0, 0, -xSpeed))); // 更新速度向量
+    audioPlayer.src = '../../assets/sfx/skid.mp3';
+    audioPlayer.play();
   } else if (key === 'd' || key === 'D') { // D 键
     body.angularVelocity.set(0, -2, 0); // 设置角速度，使车辆向右旋转
     body.velocity.copy(body.quaternion.vmult(new CANNON.Vec3(0, 0, -xSpeed))); // 更新速度向量
+    audioPlayer.src = '../../assets/sfx/skid.mp3';
+    audioPlayer.play();
   }
 
   // 施加力到 body 对象
@@ -319,8 +327,10 @@ document.addEventListener('keyup', (event) => {
 
   if (key === 'w' || key === 'W' || key === 's' || key === 'S') { // 释放W或S键
     body.velocity.set(0, 0, 0); // 停止移动
+    audioPlayer.pause();
   } else if (key === 'a' || key === 'A' || key === 'd' || key === 'D') { // 释放A或D键
     body.angularVelocity.set(0, 0, 0); // 停止旋转
+    audioPlayer.pause();
   }
 });
 
