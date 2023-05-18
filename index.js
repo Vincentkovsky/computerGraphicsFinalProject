@@ -398,7 +398,7 @@ function animate() {
   }
 
   if (body.quaternion.x>0.3 || body.quaternion.z>0.3){
-    endGame();
+    youWin();
   }
 
   // 如果车辆正在移动，旋转车轮
@@ -429,6 +429,12 @@ function animate() {
 function endGame() {
   // 显示"GAME OVER"的消息
   const gameOverScreen = document.getElementById('game-over-screen');
+  gameOverScreen.style.display = 'block';
+}
+
+function youWin() {
+  // 显示"GAME OVER"的消息
+  const gameOverScreen = document.getElementById('you-win-screen');
   gameOverScreen.style.display = 'block';
 }
 
