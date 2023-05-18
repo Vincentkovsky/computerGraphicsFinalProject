@@ -214,7 +214,7 @@ for (let i = 0; i < numWalls; i++) {
     let rotY = Math.random() * 200 - 100;
     let rotZ = Math.random() * 0;
     // 创建Three.js墙模型
-    let wallGeometry = new THREE.BoxGeometry(wallWidth/2, wallHeight, wallDepth);
+    let wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
     let wallTexture = textureLoader.load('../assets/images/imageswall.jpg');
     let wallMaterial = new THREE.MeshBasicMaterial({map:wallTexture});
     let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
@@ -223,7 +223,7 @@ for (let i = 0; i < numWalls; i++) {
     scene.add(wallMesh);
 
     // 创建Cannon.js墙物理模型
-    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth*2 , wallHeight/2 , wallDepth*2 ));
+    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth/2 , wallHeight/2 , wallDepth/2 ));
     let wallBody = new CANNON.Body({ mass: 0 });
     wallBody.addShape(wallShape);
     wallBody.position.set(posX, posY, posZ);
@@ -262,13 +262,14 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 
   const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 0.5));
   body = new CANNON.Body({ 
-    mass: 1
+    mass: 10
    });
   body.addShape(shape);
   body.position.set(0, 0.5, 0);
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI); // 设置初始旋转角度为180度
   world.addBody(body);
   MeshBodyToUpdate.push({mesh:mesh,body:body});
+
   // 在车辆模型加载完成之后，再加载车轮模型
   wheelLoader.load('../../assets/wheel.fbx', function (wheelModel) {
     wheelPositions.forEach((position, index) => {
@@ -396,6 +397,10 @@ function animate() {
     endGame();
   }
 
+  if (body.quaternion.x>0.3 || body.quaternion.z>0.3){
+    endGame();
+  }
+
   // 如果车辆正在移动，旋转车轮
   if (body && body.velocity.length() > 0) {
     // 旋转车轮，这里假设沿着x轴旋转，你可以根据需要修改
@@ -418,6 +423,8 @@ function animate() {
     body.applyForce(force, body.position);
   }
 }
+
+
 
 function endGame() {
   // 显示"GAME OVER"的消息
