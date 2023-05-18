@@ -12,22 +12,135 @@
             color: #fff;
             margin: 0px;
             overflow: hidden;
+        }.hidden-audio {
+            display: none;
         }
+        /* body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+            }.hidden-canvas {
+            display: none;
+        }
+			 */
+			
+			#reset-btn{
+				position: absolute;
+				left: 15px;
+				bottom: 15px;
+				width: 40px;
+				height: 40px;
+				border: none;
+				border-radius: 50%;
+				background:#3B53A2;
+				font-size: 25px;
+				color: #fff;
+				z-index: 100;
+				padding: 0;
+			}
+			
+			#logo{
+				position: absolute;
+				left: 15px;
+				top: 15px;
+			}
+			
+			svg{
+				pointer-events: none;
+			}
+			#car-preview {
+               width: 50%;
+               height: 50%;
+            }
+
+		#start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('../../assets/tex/1.png') no-repeat center center / cover; /* 添加这一行 */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #play-button {
+  background-color: rgba(0, 0, 0, 0); /* 使用rgba()函数设置背景颜色和透明度 */
+  background-image: url('../../assets/tex/2.png'); /* 添加背景贴图的路径 */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+        }
+        #game-over-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);  /* 黑色背景 */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-over-screen h1 {
+    font-size: 48px;
+    text-align: center; 
+    width: 100%; 
+}
+
+
     </style>
 </head>
 
 <body>
+	<div id="start-screen">
+		<img id="car-preview" src="../../assets/tex/CarBody01p.png" />
+		<h1>Welcome to Our Game!</h1>
+		<select id="car-texture-select">
+			<option value="../../assets/tex/CarBody01.png">car 1</option>
+			<option value="../../assets/tex/CarBody02.png">car 2</option>
+			<option value="../../assets/tex/CarBody03.png">car 3</option>
+			<!-- 更多选项 -->
+		</select>
+		
+		<button id="play-button" onclick="startTimer()">PLAY</button>
+	</div>
+
+    <div id="game-over-screen" style="display: none;">
+        <h1>GAME OVER</h1>
+
+    </div>
+
     <script src="../../libs/three.js"></script>
     <script src="../../libs/Detector.js"></script>
     <script src="../../libs/stats.min.js"></script>
+
     <script src="../../libs/cannon.min.js"></script>
+
     <script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/inflate.min.js"></script>
+	<script src="../../libs/FBXLoader.js"></script>
+	<script src="../../libs/CannonDebugRenderer.js"></script>
+    <audio id="audioPlayer" class="hidden-audio" controls></audio>
     
-    <script  src="game1.js" ></script>
-    <script>
-        const game = new Game();
-    </script>
- <!-- <script type="module" src="./index.js"></script> -->
+ <script type="module" src="./index.js"></script>
     
 </body>
 

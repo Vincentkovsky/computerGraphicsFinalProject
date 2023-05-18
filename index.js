@@ -1,5 +1,6 @@
 
 document.getElementById('play-button').addEventListener('click', function() {
+  
   document.getElementById('start-screen').style.display = 'none';
   startGame();
 });
