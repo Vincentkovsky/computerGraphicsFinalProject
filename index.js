@@ -53,7 +53,7 @@ function getDistance(object1, object2) {
 }
 
 const gameOverDistance = 10; // 设置距离，当进入这个距离内时，游戏结束
-const OverDistance =200;
+const OverDistance =100;
 
 function startGame() {
 let body; // 在这里定义 body
