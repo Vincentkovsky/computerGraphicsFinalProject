@@ -5,6 +5,15 @@ document.getElementById('play-button').addEventListener('click', function() {
   startGame();
 });
 
+var body; // 在这里定义 body，以便在其他地方可以访问到它
+var carProperties = {
+  '../../assets/tex/CarBody01.png': { mass: 10, massDescription: 'Light' },
+  '../../assets/tex/CarBody02.png': { mass: 55, massDescription: 'Normal' },
+  '../../assets/tex/CarBody03.png': { mass: 100, massDescription: 'Heavy' }
+  // 为其他车型添加更多条目
+};
+
+
 document.getElementById('car-texture-select').addEventListener('change', function(e) {
   const selectedTexture = e.target.value;
   const carPreview = document.getElementById('car-preview');
@@ -17,7 +26,22 @@ document.getElementById('car-texture-select').addEventListener('change', functio
   } else if (selectedTexture === '../../assets/tex/CarBody03.png') {
     carPreview.src = '../../assets/tex/CarBody03p.png';
   }
+
+  // 获取对应的质量描述
+  var selectedMassDescription = carProperties[selectedTexture].massDescription;
+
+  // 更新#car-mass-description元素的内容
+  document.getElementById('car-mass-description').textContent = 'Mass: ' + selectedMassDescription;
+
+  // 更新 body 的质量
+  if (body) {
+    body.mass = carProperties[selectedTexture].mass;
+    body.updateMassProperties(); // 更新质量属性
+  }
 });
+
+// 触发一次change事件，以显示默认选中的贴图对应的质量描述
+document.getElementById('car-texture-select').dispatchEvent(new Event('change'));
 
 function getDistance(object1, object2) {
   const dx = object1.position.x - object2.position.x;
@@ -143,7 +167,7 @@ var mate = new THREE.ShaderMaterial({
     `
 })
 var meshfin = new THREE.Mesh(geom, mate);
-meshfin.position.set(Math.random() * 100 - 50, 7, Math.random() * 0 - 50);
+meshfin.position.set(Math.random() * 50 - 50, 7, Math.random() * 0 - 50);
 scene.add(meshfin)
 
 
@@ -201,45 +225,61 @@ threeSphereMesh.castShadow = true;
 scene.add(threeSphereMesh);
 MeshBodyToUpdate.push({mesh:threeSphereMesh,body:cannonSphereBody});
 
-let numWalls = 1000; // 生成的墙的数量
 let wallWidth = 1, wallHeight = 3, wallDepth = 10; // 墙的尺寸
+let maze = [
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 2, 1],
+  [1, 0, 1, 2, 1, 2, 1, 0, 0, 1],
+  [1, 0, 1, 0, 0, 0, 1, 0, 1, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+  [1, 0, 1, 0, 1, 2, 2, 1, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+  [1, 1, 2, 1, 2, 1, 0, 1, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 2, 2, 1, 1, 1, 1, 2, 2, 1]
+];
 
-for (let i = 0; i < numWalls; i++) {
-    // 随机生成墙的位置
-    let posX = (Math.random() * 200 - 100)*5; // 随机在-10到10之间生成x坐标
-    let posY = wallHeight / 2; //墙应该位于地面上，所以y坐标为墙高的一半
-    let posZ = (Math.random() * 200 - 100)*5; // 随机在-10到10之间生成z坐标
+let wallSpacing = wallDepth; // 定义墙之间的距离
 
-    let rotX = Math.random() * 0;
-    let rotY = Math.random() * 200 - 100;
-    let rotZ = Math.random() * 0;
-    // 创建Three.js墙模型
-    let wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
-    let wallTexture = textureLoader.load('../assets/images/imageswall.jpg');
-    let wallMaterial = new THREE.MeshBasicMaterial({map:wallTexture});
-    let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
-    wallMesh.position.set(posX, posY, posZ);
-    wallMesh.rotation.set(rotX, rotY, rotZ);
-    scene.add(wallMesh);
+for (let i = 0; i < maze.length; i++) {
+  for (let j = 0; j < maze[i].length; j++) {
+      if (maze[i][j] === 1 || maze[i][j] === 2) {
+          let posX = j * wallSpacing-50;
+          let posY = wallHeight / 2;
+          let posZ = i * wallSpacing-100;
 
-    // 创建Cannon.js墙物理模型
-    let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth/2 , wallHeight/2 , wallDepth/2 ));
-    let wallBody = new CANNON.Body({ mass: 0 });
-    wallBody.addShape(wallShape);
-    wallBody.position.set(posX, posY, posZ);
-    world.addBody(wallBody);
+          let wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
+          let wallTexture = textureLoader.load('../assets/images/imageswall.jpg');
+          let wallMaterial = new THREE.MeshBasicMaterial({map:wallTexture});
+          let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
+          
+          let wallShape = new CANNON.Box(new CANNON.Vec3(wallWidth/2 , wallHeight/2 , wallDepth/2 ));
+          let wallBody = new CANNON.Body({ mass: 0 });
+          wallBody.addShape(wallShape);
 
-    // 如果需要更新墙的位置或者旋转（例如，如果墙不是静态的），将它添加到MeshBodyToUpdate数组中
-    // MeshBodyToUpdate.push({mesh: wallMesh, body: wallBody});
+          // 如果迷宫模板中的元素值为2，那么就在对应的位置生成一个沿y轴旋转90度的墙体，并往x轴移动-wallDepth/2，往z轴移动wallDepth/2
+          if (maze[i][j] === 2) {
+              posX -= wallDepth / 2;
+              posZ -= wallDepth / 2;
+
+              wallMesh.rotation.y = Math.PI / 2; // Rotate the mesh
+              wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2); // Rotate the physics body
+          }
+
+          wallMesh.position.set(posX, posY, posZ);
+          wallBody.position.set(posX, posY, posZ);
+
+          scene.add(wallMesh);
+          world.addBody(wallBody);
+      }
+  }
 }
-
-
-
 
 // 创车cannon,three
 var xSpeed = 1;
 // 获取选中的贴图
 var selectedTexture = document.getElementById('car-texture-select').value;
+var selectedMass = carProperties[selectedTexture].mass;
 
 const loaderFBX = new THREE.FBXLoader();
 const wheelLoader = new THREE.FBXLoader();
@@ -262,7 +302,7 @@ loaderFBX.load('../assets/car.fbx', function (fbx) {
 
   const shape = new CANNON.Box(new CANNON.Vec3(1, 0.5, 0.5));
   body = new CANNON.Body({ 
-    mass: 10
+    mass: selectedMass // 使用选定的质量
    });
   body.addShape(shape);
   body.position.set(0, 0.5, 0);
@@ -394,11 +434,11 @@ function animate() {
 
   if (getDistance(threeSphereMesh, meshfin) < gameOverDistance) {
     // 玩家进入了`meshfin`的周围，游戏结束
-    endGame();
+    youWin();
   }
 
   if (body.quaternion.x>0.3 || body.quaternion.z>0.3){
-    youWin();
+    endGame();
   }
 
   // 如果车辆正在移动，旋转车轮
