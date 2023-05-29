@@ -2,6 +2,7 @@
 document.getElementById('play-button').addEventListener('click', function() {
   
   document.getElementById('start-screen').style.display = 'none';
+
   startGame();
 });
 
@@ -51,11 +52,13 @@ function getDistance(object1, object2) {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-const gameOverDistance = 15; // 设置距离，当进入这个距离内时，游戏结束
+const gameOverDistance = 10; // 设置距离，当进入这个距离内时，游戏结束
+const OverDistance =200;
 
 function startGame() {
 let body; // 在这里定义 body
-
+audioPlayer2.src = '../../assets/sfx/car.mp3';
+audioPlayer2.play();
 // 创建场景和相机
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xa0a0a0 );
@@ -138,12 +141,7 @@ const cannonDefaultCantactMaterial = new CANNON.ContactMaterial(
 // 将两个默认材质添加到物理世界world中
 world.addContactMaterial(cannonDefaultCantactMaterial);
 
-// 创建zhon'dian
-// const threefinGeometry = new THREE.PlaneGeometry( 1, 1, 1 );
-// const threefinMaterial = new THREE.ShaderMaterial({
-//   vertexshader: 
-//   gl
-//   document.getElementById('vertexshader').textContent,
+
 
 var geom = new THREE.SphereGeometry(3, 5, 3);
 var mate = new THREE.ShaderMaterial({
@@ -178,7 +176,7 @@ scene.add(meshfin)
 var textureLoader = new THREE.TextureLoader();
 var glassTexture = textureLoader.load('../assets/images/glass.jpg');
 // 创建地面three
-const threePlaneGeometry = new THREE.PlaneGeometry(1000,1000);
+const threePlaneGeometry = new THREE.PlaneGeometry(200,200);
 const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x999999 });
 glassTexture.wrapS = THREE.RepeatWrapping;
 glassTexture.wrapT = THREE.RepeatWrapping;
@@ -188,21 +186,25 @@ let threePlaneMesh = new THREE.Mesh( threePlaneGeometry,planeMaterial);
 threePlaneMesh.rotation.x = -Math.PI/2;
 threePlaneMesh.castShadow = true;
 threePlaneMesh.receiveShadow = true;
-threePlaneMesh.position.set(0,0,0);
+threePlaneMesh.position.set(0,0,-80);
 scene.add( threePlaneMesh );
 
  //地面incannon
 let cannonPlanShape = new CANNON.Plane();
 let cannonPlanMaterial = new CANNON.Material();
 let cannonPlanMass = 0;
-let cannonPlanPosition=new CANNON.Vec3(0,0,0);
+const cannonSize = 200;
+cannonPlanShape.boundingSphereRadius=cannonSize;
+let cannonPlanPosition=new CANNON.Vec3(0,0,-80);
 let cannonPlanBody = new CANNON.Body({
     mass: cannonPlanMass,
     shape: cannonPlanShape,
     material: cannonPlanMaterial,
     position: cannonPlanPosition,
+    
 });
 cannonPlanBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+
 world.addBody(cannonPlanBody);
 
 const MeshBodyToUpdate = [];
@@ -436,6 +438,10 @@ function animate() {
     // 玩家进入了`meshfin`的周围，游戏结束
     youWin();
   }
+  if (getDistance(threeSphereMesh, meshfin) > OverDistance) {
+    // 玩家进入了`meshfin`的周围，游戏结束
+    endGame();
+  }
 
   if (body.quaternion.x>0.3 || body.quaternion.z>0.3){
     endGame();
@@ -468,14 +474,20 @@ function animate() {
 
 function endGame() {
   // 显示"GAME OVER"的消息
+  audioPlayer2.pause();
   const gameOverScreen = document.getElementById('game-over-screen');
   gameOverScreen.style.display = 'block';
+  audioPlayer1.src = '../../assets/sfx/fall.mp3';
+  audioPlayer1.play(); 
 }
 
 function youWin() {
   // 显示"GAME OVER"的消息
-  const gameOverScreen = document.getElementById('you-win-screen');
-  gameOverScreen.style.display = 'block';
+  audioPlayer2.pause();
+  const youWinScreen = document.getElementById('you-win-screen');
+  youWinScreen.style.display = 'block';
+  audioPlayer1.src = '../../assets/sfx/win.mp3';
+  audioPlayer1.play();
 }
 
 animate();
